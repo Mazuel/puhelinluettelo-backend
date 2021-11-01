@@ -43,7 +43,7 @@ app.get("/info", (req, res) => {
   });
 });
 
-app.get("/api/persons/:id", (req, res) => {
+app.get("/api/persons/:id", (req, res, next) => {
   Person.findById(req.params.id)
     .then((person) => {
       res.json(person);
@@ -51,7 +51,7 @@ app.get("/api/persons/:id", (req, res) => {
     .catch((error) => next(error));
 });
 
-app.delete("/api/persons/:id", (req, res) => {
+app.delete("/api/persons/:id", (req, res, next) => {
   Person.findByIdAndRemove(req.params.id)
     .then((result) => {
       res.status(204).end();
@@ -59,7 +59,7 @@ app.delete("/api/persons/:id", (req, res) => {
     .catch((error) => next(error));
 });
 
-app.put("/api/persons/:id", (req, res) => {
+app.put("/api/persons/:id", (req, res, next) => {
   const body = req.body;
 
   const person = {
@@ -67,7 +67,7 @@ app.put("/api/persons/:id", (req, res) => {
     number: body.number,
   };
 
-  Person.findByIdAndUpdate(req.params.id, person, { new: true })
+  Person.findByIdAndUpdate(req.params.id, person, next, { new: true })
     .then((updatedPerson) => {
       res.json(updatedPerson);
     })
@@ -75,15 +75,15 @@ app.put("/api/persons/:id", (req, res) => {
 });
 
 //TODO
-app.post("/api/persons", (req, res) => {
+app.post("/api/persons", (req, res, next) => {
   const body = req.body;
 
   if (body.name === undefined || body.name === "") {
-    return response.status(400).json({ error: "name missing" });
+    return res.status(400).json({ error: "name missing" });
   }
 
   if (body.number === undefined || body.number === "") {
-    return response.status(400).json({ error: "number missing" });
+    return res.status(400).json({ error: "number missing" });
   }
 
   const person = new Person({
@@ -91,9 +91,12 @@ app.post("/api/persons", (req, res) => {
     number: body.number,
   });
 
-  person.save().then((savedPerson) => {
-    res.json(savedPerson);
-  });
+  person
+    .save()
+    .then((savedPerson) => {
+      res.json(savedPerson);
+    })
+    .catch((error) => res.status(400).json(error.message));
 });
 
 const PORT = process.env.PORT;
