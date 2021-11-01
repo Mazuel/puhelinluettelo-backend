@@ -1,5 +1,16 @@
-DELETE http://localhost:3001/api/persons/3
+DELETE http://localhost:3001/api/persons/4
 
 #####
 
 GET http://localhost:3001/api/persons
+
+
+#####
+
+POST http://localhost:3001/api/persons
+content-type: application/json
+
+{
+    "name": "Mortti Mossikka",
+    "number": "202-123421"
+}

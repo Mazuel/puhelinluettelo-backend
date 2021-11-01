@@ -1,6 +1,12 @@
-const { response } = require("express");
 const express = require("express");
+const morgan = require("morgan");
 const app = express();
+const cors = require("cors");
+
+app.use(express.json());
+morgan.token("body", (req, res) => JSON.stringify(req.body));
+app.use(morgan(":method :url :status :response-time ms :body"));
+app.use(cors());
 
 let persons = [
   {
@@ -59,11 +65,38 @@ app.delete("/api/persons/:id", (req, res) => {
 //TODO
 app.post("/api/persons", (req, res) => {
   const person = req.body;
-  person.id = Math.random(10000);
+  person.id = getRandomInt(0, 10000);
+  if (person.name === undefined || person.name === "") {
+    return res.status(400).json({
+      error: "Name is missing!",
+    });
+  }
+
+  const checkPerson = persons.find(
+    (existingPerson) => existingPerson.name === person.name
+  );
+
+  if (checkPerson) {
+    return res.status(400).json({
+      error: `Name must be unique!`,
+    });
+  }
+
+  if (person.number === undefined || person.number === "") {
+    return res.status(400).json({
+      error: "Number is missing!",
+    });
+  }
   persons.push(person);
 });
 
-const PORT = 3001;
+const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
+
+function getRandomInt(min, max) {
+  min = Math.ceil(min);
+  max = Math.floor(max);
+  return Math.floor(Math.random() * (max - min) + min); //The maximum is exclusive and the minimum is inclusive
+}
